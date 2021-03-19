@@ -32,6 +32,23 @@ defmodule Engine2048.BoardTest do
       board = Board.new(2, 4)
       assert 8 == board |> Board.tile_count()
     end
+
+    test "can get empty tiles (indeces)" do
+      board = Board.new(2, 2, 0)
+      assert [0, 1, 2, 3] == board |> Board.empty_tiles()
+    end
+  end
+
+  describe "Board interaction" do
+    test "can replace value at index i" do
+      board = Board.new(2, 2, 0)
+      assert [0, 0, 0, 1] == board |> Board.replace_at(3, 1) |> List.flatten()
+    end
+
+    test "can clear value at index i" do
+      board = Board.new(2, 2, 1)
+      assert [1, 1, 1, 0] == board |> Board.replace_at(3, 0) |> List.flatten()
+    end
   end
 
   describe "Board rotation" do

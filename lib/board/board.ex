@@ -23,6 +23,22 @@ defmodule Engine2048.Board do
     |> Enum.chunk_every(cols)
   end
 
+  @spec replace_at(Board.t(), non_neg_integer(), integer()) :: Board.t()
+  def replace_at(board, i, val) do
+    rows = board |> Board.rows()
+
+    board
+    |> List.flatten()
+    |> List.replace_at(i, val)
+    |> Enum.chunk_every(rows)
+  end
+
+  @spec clear_at(Board.t(), non_neg_integer()) :: Board.t()
+  def clear_at(board, i) do
+    board
+    |> Board.replace_at(i, 0)
+  end
+
   @spec rows(Board.t()) :: pos_integer()
   def rows(board) do
     board |> length()
@@ -36,6 +52,20 @@ defmodule Engine2048.Board do
   @spec tile_count(Board.t()) :: pos_integer()
   def tile_count(board) do
     board |> List.flatten() |> length()
+  end
+
+  @spec empty_tile_count(Board.t()) :: pos_integer()
+  def empty_tile_count(board) do
+    board |> List.flatten() |> Enum.filter(&(&1 == 0)) |> length()
+  end
+
+  @spec empty_tiles(Board.t()) :: [non_neg_integer()]
+  def empty_tiles(board) do
+    board
+    |> List.flatten()
+    |> Enum.filter(&(&1 == 0))
+    |> Enum.with_index()
+    |> Enum.map(fn {_, i} -> i end)
   end
 
   @spec rotate_right(Board.t()) :: Board.t()

@@ -1,7 +1,7 @@
 defmodule Engine2048.Board do
-  @type t :: [[integer()]]
+  alias Engine2048.{Board, Tile}
 
-  alias Engine2048.Board
+  @type t :: [[Tile.t()]]
 
   @spec new(
           non_neg_integer(),

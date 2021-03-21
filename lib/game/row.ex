@@ -12,9 +12,10 @@ defmodule Engine2048.Game.GRow do
       [] ->
         []
 
-      ## prev operation adds brackets around row
+      ## chunk operation adds brackets around 
       ## [[]]
       wrapped_row ->
+        ## no obstacles
         if wrapped_row |> length() == 1 do
           [row] = wrapped_row
           len = row |> length()

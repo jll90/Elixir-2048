@@ -7,6 +7,7 @@ defmodule Engine2048.Game.GRowTest do
   describe "GRow swipes" do
     test "swipes are merged toward the wall" do
       assert [0, 0, 0, 2, 2, 2] |> GRow.swipe() == [0, 0, 0, 0, 2, 4]
+      assert [0, 0, 2, 2, 2, 0] |> GRow.swipe() == [0, 0, 0, 0, 2, 4]
     end
 
     test "obstacle swipes" do
@@ -15,6 +16,10 @@ defmodule Engine2048.Game.GRowTest do
       assert [0, 0, 2, 2, -1, -1] |> GRow.swipe() == [0, 0, 0, 4, -1, -1]
       assert [0, 2, 2, -1, 2, 2] |> GRow.swipe() == [0, 2, 2, -1, 0, 4]
       assert [2, 2, -1, -1, 2, 2] |> GRow.swipe() == [2, 2, -1, -1, 0, 4]
+    end
+
+    test "other test cases" do
+      assert [2, 0, 4, 0, 8, 8, 0, 32, 0] |> GRow.swipe() == [0, 0, 0, 0, 0, 2, 4, 16, 32]
     end
   end
 end

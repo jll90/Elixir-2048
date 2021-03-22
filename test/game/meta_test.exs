@@ -30,13 +30,41 @@ defmodule Engine2048.Game.MetaTest do
       r2 = [0, 0, 0, 0, 0, 2, 4, 16, 32]
 
       result = Meta.calc_row_diff(r1, r2)
-      assert result
+      assert is_list(result)
+      assert result |> find_delta(5, 0, 5)
+      assert result |> find_delta(6, 2, 6)
+      assert result |> find_delta(8, 7, 8)
+      assert result |> find_new(7)
+
+      IO.inspect(result)
+      assert result |> find_delta(7, 4, 7, true)
+      assert result |> find_delta(7, 5, 7, true)
     end
 
-    def find_delta(meta_list, j, test_start, test_finish) do
+    def find_merge_meta() do
+    end
+
+    def find_new(meta_list, j) do
       meta_list
-      |> Enum.find(fn %{i: i, delta: {start, finish}} ->
-        i == j && start == test_start && finish == test_finish
+      |> Enum.find(fn e ->
+        Map.get(e, :new) && Map.get(e, :i) == j
+      end)
+    end
+
+    def find_delta(meta_list, j, test_start, test_finish, with_merge \\ false) do
+      meta_list
+      |> Enum.find(fn
+        %{i: i, delta: {start, finish}} = e ->
+          delta_test = i == j && start == test_start && finish == test_finish
+
+          if with_merge do
+            delta_test && Map.get(e, :merge)
+          else
+            delta_test
+          end
+
+        _ ->
+          false
       end)
     end
   end

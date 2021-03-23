@@ -1,20 +1,102 @@
 defmodule Engine2048.Game.Meta do
   alias Engine2048.Board
   alias Engine2048.Game.GRow
+  alias Engine2048.Utils.IndexMapper
 
+  @type board() :: GRow.board()
+  @type swipe_dir() :: GRow.swipe_dir()
   @type tile_meta :: %{
           optional(:new) => boolean(),
           optional(:merged) => boolean(),
           optional(:delta) => {non_neg_integer(), non_neg_integer()},
+          optional(:deltax) => {non_neg_integer(), non_neg_integer()},
+          optional(:deltay) => {non_neg_integer(), non_neg_integer()},
           optional(:pv) => integer(),
           v: integer(),
           i: non_neg_integer()
         }
 
+  @spec swipe_dir_to_degs(swipe_dir()) :: IndexMapper.rotate_degs()
+  def swipe_dir_to_degs(:right), do: 0
+  def swipe_dir_to_degs(:down), do: 90
+  def swipe_dir_to_degs(:left), do: 180
+  def swipe_dir_to_degs(:up), do: 270
+
+  @spec calc_board_diff(Board.t(), Board.t(), swipe_dir()) :: [tile_meta()]
+  def calc_board_diff(b1, b2, :right) do
+    Enum.zip(b1, b2)
+    |> Enum.map(fn {r1, r2} ->
+      calc_row_diff(r1, r2)
+    end)
+    |> Enum.with_index()
+    |> Enum.map(fn {r, row_i} ->
+      r
+      |> Enum.map(fn %{i: i} = meta ->
+        shifted_i = i |> IndexMapper.flatten_index(row_i, Board.cols(b1))
+        meta |> Map.merge(%{i: shifted_i})
+      end)
+    end)
+    |> map_meta_indeces(b1, :right)
+  end
+
+  def calc_board_diff(b1, b2, :up) do
+    b1 = b1 |> Board.rotate_right()
+    b2 = b2 |> Board.rotate_right()
+
+    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :up)
+  end
+
+  def calc_board_diff(b1, b2, :left) do
+    b1 = b1 |> Board.rotate_180()
+    b2 = b2 |> Board.rotate_180()
+
+    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :left)
+  end
+
+  def calc_board_diff(b1, b2, :down) do
+    b1 = b1 |> Board.rotate_left()
+    b2 = b2 |> Board.rotate_left()
+
+    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :down)
+  end
+
+  @spec map_meta_indeces([[tile_meta()]], Board.t(), swipe_dir()) :: [tile_meta()]
+  def map_meta_indeces(meta_list, board, swipe_dir) do
+    rows = board |> Board.rows()
+    cols = board |> Board.cols()
+
+    meta_list
+    |> List.flatten()
+    |> Enum.map(fn %{i: i} = meta ->
+      degs = swipe_dir |> swipe_dir_to_degs()
+      shifted_i = i |> IndexMapper.rotate_index_map(rows, cols, degs)
+      meta |> Map.merge(%{i: shifted_i})
+    end)
+    |> Enum.map(fn
+      %{delta: {i, j}} = m ->
+        case swipe_dir do
+          :right ->
+            m |> Map.put(:deltax, {i, j})
+
+          :left ->
+            m |> Map.put(:deltax, {j, i})
+
+          :up ->
+            m |> Map.put(:deltay, {i, j})
+
+          :down ->
+            m |> Map.put(:deltay, {j, i})
+        end
+
+      m ->
+        m
+    end)
+  end
+
   @spec calc_row_diff(GRow.t(), GRow.t()) :: [tile_meta()] | nil
   def calc_row_diff(r1, r2) do
     if r1 == r2 do
-      nil
+      []
     else
       if r1 |> GRow.shift() == r2 do
         r1_values = r1 |> Enum.with_index() |> Enum.filter(fn {v, _} -> v > 0 end)
@@ -34,7 +116,34 @@ defmodule Engine2048.Game.Meta do
 
     if obstacles |> length() > 0 do
       # for now
-      []
+      split_r1 = r1 |> Enum.with_index() |> Enum.chunk_by(fn {v, _} -> v == -1 end)
+      split_r2 = r2 |> Enum.with_index() |> Enum.chunk_by(fn {v, _} -> v == -1 end)
+
+      # IO.inspect(split_r1)
+      # IO.inspect(split_r2)
+
+      result =
+        Enum.zip(split_r1, split_r2)
+        |> Enum.map(fn {r1, r2} ->
+          clean_r1 = r1 |> Enum.map(fn {v, _} -> v end)
+          clean_r2 = r2 |> Enum.map(fn {v, _} -> v end)
+          {_, start_index} = r1 |> List.first()
+
+          calc_row_diff(clean_r1, clean_r2)
+          |> Enum.map(fn
+            %{delta: {i, j}, i: k} = meta ->
+              meta
+              |> Map.merge(%{delta: {i + start_index, j + start_index}, i: k + start_index})
+
+            %{i: i} = meta ->
+              meta
+              |> Map.merge(%{i: i + start_index})
+          end)
+        end)
+
+      result
+      |> List.flatten()
+      |> Enum.filter(&(!is_nil(&1)))
     else
       merged_r1 = r1 |> GRow.shift() |> GRow.merge()
       ## the merge operation will generate a zero towards the end of the row
@@ -51,16 +160,12 @@ defmodule Engine2048.Game.Meta do
         |> length()
 
       zero_boundary_index = reverse_zero_boundary_index |> reverse_index(r1 |> length())
-      IO.inspect(zero_boundary_index, label: "zero boundary index")
-      IO.inspect(reverse_zero_boundary_index, label: "reverse zero boundary index")
 
       indexed_r2 =
         r2
         |> Enum.with_index()
         |> Enum.take(zero_boundary_index + 1)
         |> Enum.filter(fn {v, _} -> v > 0 end)
-
-      IO.inspect(indexed_r2)
 
       left_of_boundary_non_zeroes = indexed_r2 |> length()
 
@@ -117,8 +222,6 @@ defmodule Engine2048.Game.Meta do
       merge_indeces =
         find_to_merge_indeces(r1, merge_values |> List.first(), merge_values |> List.last())
 
-      IO.inspect(merge_indeces, label: "merge_indeces")
-
       []
       |> Enum.concat(left_of_boundary_meta)
       |> Enum.concat(right_of_boundary_meta)
@@ -164,5 +267,11 @@ defmodule Engine2048.Game.Meta do
   @spec reverse_index(non_neg_integer(), non_neg_integer()) :: non_neg_integer()
   defp reverse_index(i, length) when i <= length do
     length - 1 - i
+  end
+
+  @spec prepend_new([tile_meta()], non_neg_integer(), pos_integer()) :: [tile_meta()]
+  def prepend_new(meta_list, i, value) do
+    new_meta = %{new: value, i: i}
+    [new_meta | meta_list]
   end
 end

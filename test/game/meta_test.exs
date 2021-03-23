@@ -5,12 +5,12 @@ defmodule Engine2048.Game.MetaTest do
   alias Engine2048.Game.Meta
 
   describe "GRow swipes diff" do
-    test "full row meta is nil" do
+    test "full row meta is []" do
       r1 = [2, 4, 8, 1, 2, 4]
       r2 = r1
 
       result = Meta.calc_row_diff(r1, r2)
-      refute result
+      assert result == []
     end
 
     test "can calculate meta for rows containing zeroes and no merges" do
@@ -26,22 +26,58 @@ defmodule Engine2048.Game.MetaTest do
     end
 
     test "can calculate meta for merges" do
-      r1 = [2, 0, 4, 0, 8, 8, 0, 32, 0]
-      r2 = [0, 0, 0, 0, 0, 2, 4, 16, 32]
+      r1 = [2, 0, 4, 0, 8, 0, 8, 0, 32, 0]
+      r2 = [0, 0, 0, 0, 0, 0, 2, 4, 16, 32]
 
       result = Meta.calc_row_diff(r1, r2)
       assert is_list(result)
-      assert result |> find_delta(5, 0, 5)
-      assert result |> find_delta(6, 2, 6)
-      assert result |> find_delta(8, 7, 8)
-      assert result |> find_new(7)
+      assert result |> find_delta(6, 0, 6)
+      assert result |> find_delta(7, 2, 7)
+      assert result |> find_delta(9, 8, 9)
+      assert result |> find_new(8)
 
-      IO.inspect(result)
-      assert result |> find_delta(7, 4, 7, true)
-      assert result |> find_delta(7, 5, 7, true)
+      assert result |> find_delta(8, 4, 8, true)
+      assert result |> find_delta(8, 6, 8, true)
     end
 
-    def find_merge_meta() do
+    test "can calculate meta for merges w/ obstacles" do
+      r1 = [2, 0, 4, -1, 8, 8, -1, 32, 0]
+      r2 = [0, 2, 4, -1, 0, 16, -1, 0, 32]
+
+      result = Meta.calc_row_diff(r1, r2)
+      assert is_list(result)
+
+      assert result |> find_delta(1, 0, 1)
+      assert result |> find_delta(2, 2, 2)
+      assert result |> find_delta(8, 7, 8)
+      assert result |> find_new(5)
+
+      assert result |> find_delta(5, 4, 5, true)
+      assert result |> find_delta(5, 5, 5, true)
+    end
+
+    test "can generate meta for board swipes" do
+      b1 = [
+        [1, 2, 0],
+        [2, 0, 4],
+        [8, 4, 0]
+      ]
+
+      b2 = [
+        [0, 1, 2],
+        [0, 2, 4],
+        [0, 8, 4]
+      ]
+
+      result = Meta.calc_board_diff(b1, b2, :right)
+      assert is_list(result)
+
+      assert result |> find_delta(1, 0, 1)
+      assert result |> find_delta(2, 1, 2)
+      assert result |> find_delta(4, 0, 1)
+      assert result |> find_delta(5, 2, 2)
+      assert result |> find_delta(7, 0, 1)
+      assert result |> find_delta(8, 1, 2)
     end
 
     def find_new(meta_list, j) do

@@ -1,5 +1,6 @@
 defmodule Engine2048.Board do
   alias Engine2048.{Board, Tile}
+  alias Engine2048.Utils.IndexMapper
 
   @type t :: [[Tile.t()]]
 
@@ -63,8 +64,8 @@ defmodule Engine2048.Board do
   def empty_tiles(board) do
     board
     |> List.flatten()
-    |> Enum.filter(&(&1 == 0))
     |> Enum.with_index()
+    |> Enum.filter(fn {v, _} -> v == 0 end)
     |> Enum.map(fn {_, i} -> i end)
   end
 
@@ -77,7 +78,7 @@ defmodule Engine2048.Board do
     |> List.flatten()
     |> Enum.with_index()
     |> Enum.map(fn {v, i} ->
-      {v, i, i |> calc_map_right_index(rows, cols)}
+      {v, i, i |> IndexMapper.rotate_index_map(rows, cols, 90)}
     end)
     |> Enum.map(fn {_, _, j} ->
       board |> List.flatten() |> Enum.at(j)
@@ -98,12 +99,6 @@ defmodule Engine2048.Board do
     board
     |> Board.rotate_right()
     |> Board.rotate_right()
-  end
-
-  @spec calc_map_right_index(non_neg_integer(), non_neg_integer(), non_neg_integer()) ::
-          non_neg_integer()
-  def calc_map_right_index(i, rows, cols) do
-    cols * (rows - 1 - rem(i, rows)) + div(i, rows)
   end
 
   @spec full?(Board.t()) :: boolean()

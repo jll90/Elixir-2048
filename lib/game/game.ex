@@ -1,6 +1,6 @@
 defmodule Engine2048.Game do
   alias Engine2048.Board
-  alias Engine2048.Game.{Meta, GRow}
+  alias Engine2048.Game.{Meta, GRow, Print}
 
   @type game_config :: %{
           cols: pos_integer(),
@@ -46,6 +46,8 @@ defmodule Engine2048.Game do
 
           b |> Board.replace_at(empty_tile_index, -1)
         end)
+      else
+        board
       end
 
     game_state = %{
@@ -57,7 +59,7 @@ defmodule Engine2048.Game do
       victory: nil
     }
 
-    game_state |> print()
+    game_state |> Print.print()
 
     {:ok, game_state}
   end
@@ -116,7 +118,7 @@ defmodule Engine2048.Game do
     swiped_board = board |> swipe(swipe_dir)
 
     if board == swiped_board do
-      game_state |> print()
+      game_state |> Print.print()
 
       game_state
     else
@@ -141,7 +143,7 @@ defmodule Engine2048.Game do
         |> Map.put(:turns, Map.get(game_state, :turns) + 1)
         |> Map.put(:victory, victory)
 
-      game_state |> print()
+      game_state |> Print.print()
 
       game_state
     end
@@ -161,59 +163,5 @@ defmodule Engine2048.Game do
       true ->
         nil
     end
-  end
-
-  @spec print(game_state()) :: :ok
-  def print(game_state) do
-    %{
-      turns: turns,
-      victory: victory,
-      curr: board,
-      prev: prev_board
-    } = game_state
-
-    IO.puts("==================================")
-    IO.puts("Victory: #{victory}")
-    IO.puts("Turns: #{turns}")
-    IO.puts("\n")
-
-    if prev_board, do: prev_board |> print_board()
-    IO.puts("\n")
-    IO.puts("\n")
-    board |> print_board()
-    IO.puts("\n")
-
-    :ok
-  end
-
-  @spec print_board(Board.t()) :: :ok
-  defp print_board(board) do
-    board
-    |> Enum.each(fn r ->
-      str_row =
-        r
-        |> Enum.map(fn v ->
-          format_value(v)
-        end)
-        |> Enum.join("|")
-
-      IO.puts(str_row)
-      IO.puts("------------------------------------")
-    end)
-
-    :ok
-  end
-
-  @spec format_value(integer()) :: String.t()
-  defp format_value(value) do
-    len = value |> Integer.to_string() |> String.length()
-    pad_empty(value, 4 - len)
-  end
-
-  @spec pad_empty(String.t(), non_neg_integer()) :: String.t()
-  defp pad_empty(s, 0), do: s
-
-  defp pad_empty(s, count) do
-    pad_empty(" #{s}", count - 1)
   end
 end

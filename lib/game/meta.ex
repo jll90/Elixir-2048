@@ -18,9 +18,9 @@ defmodule Engine2048.Game.Meta do
 
   @spec swipe_dir_to_degs(swipe_dir()) :: IndexMapper.rotate_degs()
   def swipe_dir_to_degs(:right), do: 0
-  def swipe_dir_to_degs(:down), do: 90
+  def swipe_dir_to_degs(:down), do: 270
   def swipe_dir_to_degs(:left), do: 180
-  def swipe_dir_to_degs(:up), do: 270
+  def swipe_dir_to_degs(:up), do: 90
 
   @spec calc_board_diff(Board.t(), Board.t(), swipe_dir()) :: [tile_meta()]
   def calc_board_diff(b1, b2, :right) do
@@ -71,9 +71,14 @@ defmodule Engine2048.Game.Meta do
 
     meta_list
     |> List.flatten()
+    |> IO.inspect(label: "tile_meta #{swipe_dir}")
     |> Enum.map(fn %{i: i} = meta ->
       degs = swipe_dir |> swipe_dir_to_degs()
-      shifted_i = i |> IndexMapper.rotate_index_map(rows, cols, degs)
+
+      shifted_i =
+        i
+        |> IndexMapper.rotate_index_map(rows, cols, degs)
+
       meta |> Map.merge(%{i: shifted_i})
     end)
     |> Enum.map(fn
@@ -83,18 +88,19 @@ defmodule Engine2048.Game.Meta do
             m |> Map.put(:deltax, {i, j})
 
           :left ->
-            m |> Map.put(:deltax, {j, i})
-
-          :up ->
-            m |> Map.put(:deltay, {i, j})
+            m |> Map.put(:deltax, {i |> reverse_index(rows), j |> reverse_index(rows)})
 
           :down ->
-            m |> Map.put(:deltay, {j, i})
+            m |> Map.put(:deltay, {i, j})
+
+          :up ->
+            m |> Map.put(:deltay, {i |> reverse_index(cols), j |> reverse_index(cols)})
         end
 
       m ->
         m
     end)
+    |> IO.inspect(label: "tile_meta #{swipe_dir}")
   end
 
   @spec calc_row_diff(GRow.t(), GRow.t()) :: [tile_meta()] | nil

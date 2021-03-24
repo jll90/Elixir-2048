@@ -56,7 +56,7 @@ defmodule Engine2048.Game.MetaTest do
       assert result |> find_delta(5, 5, 5, true)
     end
 
-    test "can generate meta for board swipes" do
+    test "can generate meta for right swipes" do
       b1 = [
         [1, 2, 0],
         [2, 0, 4],
@@ -78,6 +78,66 @@ defmodule Engine2048.Game.MetaTest do
       assert result |> find_delta(5, 2, 2)
       assert result |> find_delta(7, 0, 1)
       assert result |> find_delta(8, 1, 2)
+    end
+
+    test "can generate meta for left swipes" do
+      b1 = [
+        [1, 2, 0],
+        [2, 0, 4],
+        [8, 4, 0]
+      ]
+
+      b2 = [
+        [1, 2, 0],
+        [2, 4, 0],
+        [8, 4, 0]
+      ]
+
+      result = Meta.calc_board_diff(b1, b2, :left)
+      assert is_list(result)
+
+      assert result |> find_delta(4, 0, 1)
+    end
+
+    test "can generate meta for down swipes" do
+      b1 = [
+        [1, 2, 0],
+        [2, 0, 4],
+        [8, 4, 0]
+      ]
+
+      b2 = [
+        [1, 0, 0],
+        [2, 2, 0],
+        [8, 4, 4]
+      ]
+
+      result = Meta.calc_board_diff(b1, b2, :down)
+      assert is_list(result)
+
+      assert result |> find_delta(4, 0, 1)
+      assert result |> find_delta(7, 2, 2)
+      assert result |> find_delta(8, 1, 2)
+    end
+
+    test "can generate meta up swipes" do
+      b1 = [
+        [1, 2, 0],
+        [2, 0, 4],
+        [8, 4, 0]
+      ]
+
+      b2 = [
+        [1, 2, 4],
+        [2, 4, 0],
+        [8, 0, 0]
+      ]
+
+      result = Meta.calc_board_diff(b1, b2, :up)
+      assert is_list(result)
+
+      assert result |> find_delta(2, 1, 2)
+      assert result |> find_delta(4, 0, 1)
     end
 
     def find_new(meta_list, j) do

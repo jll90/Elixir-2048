@@ -32,4 +32,9 @@ defmodule Engine2048.Utils.IndexMapper do
   def flatten_index(i, nth_row, cols) do
     i + nth_row * cols
   end
+
+  @spec reverse_index(non_neg_integer(), non_neg_integer()) :: non_neg_integer()
+  def reverse_index(i, length) when i <= length do
+    length - 1 - i
+  end
 end

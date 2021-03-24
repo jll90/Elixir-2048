@@ -29,4 +29,23 @@ defmodule Engine2048.Game.GRowTest do
       assert [2, 0, 4, 0, 8, 8, 0, 32, 0] |> GRow.swipe() == [0, 0, 0, 0, 0, 2, 4, 16, 32]
     end
   end
+
+  describe "GRow merges" do
+    test "find merges works" do
+      ## row has already been merged and filled w/ zeroes
+      result = [0, 0, 4, 0, 8, 0, 16, 32] |> GRow.find_merges()
+
+      assert result == [
+               {[0, 4], 1, 2},
+               {[0, 8], 3, 4},
+               {[0, 16], 5, 6}
+             ]
+    end
+
+    test "find non_merges works" do
+      ## row has already been merged and filled w/ zeroes
+      result = [0, 0, 4, 0, 8, 0, 16, 8, 4] |> GRow.find_non_merges()
+      assert result == [{4, 8}, {8, 7}]
+    end
+  end
 end

@@ -88,13 +88,21 @@ defmodule Engine2048.Game.Meta do
             m |> Map.put(:deltax, {i, j})
 
           :left ->
-            m |> Map.put(:deltax, {i |> reverse_index(rows), j |> reverse_index(rows)})
+            m
+            |> Map.put(
+              :deltax,
+              {i |> IndexMapper.reverse_index(rows), j |> IndexMapper.reverse_index(rows)}
+            )
 
           :down ->
             m |> Map.put(:deltay, {i, j})
 
           :up ->
-            m |> Map.put(:deltay, {i |> reverse_index(cols), j |> reverse_index(cols)})
+            m
+            |> Map.put(
+              :deltay,
+              {i |> IndexMapper.reverse_index(cols), j |> IndexMapper.reverse_index(cols)}
+            )
         end
 
       m ->
@@ -156,103 +164,32 @@ defmodule Engine2048.Game.Meta do
       |> List.flatten()
       |> Enum.filter(&(!is_nil(&1)))
     else
-      merged_r1 = r1 |> GRow.shift() |> GRow.merge()
-      ## the merge operation will generate a zero towards the end of the row
-      ## this zero marks the boundary between numbers 
-      ## that were shifted in front of the merge and behind the merge 
-      ## we take in front of the merge to mean left of the merge
-      ## and behind the merge right of the merge
-      reverse_zero_boundary_index =
-        merged_r1
-        ## row is reversed because there are no zeroes towards the right
-        ## meaning that the first zero is indeed the boundary - and not a leftmost empty tile
-        |> Enum.reverse()
-        |> Enum.take_while(&(&1 != 0))
-        |> length()
+      pre_swipe_zeroes = r1 |> Enum.filter(&(&1 == 0)) |> length()
+      post_swipe_zeroes = r2 |> Enum.filter(&(&1 == 0)) |> length()
 
-      zero_boundary_index = reverse_zero_boundary_index |> reverse_index(r1 |> length())
+      merges_count = post_swipe_zeroes - pre_swipe_zeroes
 
-      indexed_r2 =
-        r2
-        |> Enum.with_index()
-        |> Enum.take(zero_boundary_index + 1)
-        |> Enum.filter(fn {v, _} -> v > 0 end)
-
-      left_of_boundary_non_zeroes = indexed_r2 |> length()
-
-      left_of_boundary_meta =
-        if left_of_boundary_non_zeroes > 0 do
-          indexed_r1 =
-            r1
-            |> Enum.with_index()
-            |> Enum.filter(fn {v, _} -> v > 0 end)
-            |> Enum.take(left_of_boundary_non_zeroes)
-
-          Enum.zip(indexed_r1, indexed_r2)
-          |> Enum.map(fn {{_, i}, {v, j}} -> %{v: v, i: j, delta: {i, j}} end)
-        else
-          []
-        end
-
-      reverse_indexed_r2 =
-        r2
-        |> Enum.reverse()
-        |> Enum.with_index()
-        |> Enum.take(reverse_zero_boundary_index - 1)
-
-      right_of_boundary_non_zeroes = reverse_indexed_r2 |> length()
-
-      reverse_indexed_r1 =
-        r1
-        |> Enum.reverse()
-        |> Enum.with_index()
-        |> Enum.filter(fn {v, _} -> v > 0 end)
-        |> Enum.take(right_of_boundary_non_zeroes)
-
-      right_of_boundary_meta =
-        Enum.zip(reverse_indexed_r1, reverse_indexed_r2)
-        |> Enum.map(fn {{_, i}, {v, j}} ->
-          %{
-            v: v,
-            i: j |> reverse_index(r1 |> length()),
-            delta: {i |> reverse_index(r1 |> length), j |> reverse_index(r1 |> length())}
-          }
-        end)
-
-      reverse_shifted_r1 = r1 |> GRow.shift() |> Enum.reverse()
-
-      merge_values =
-        reverse_shifted_r1
-        |> Enum.with_index()
-        |> Enum.find_value(fn {_, i} ->
-          n = reverse_shifted_r1 |> Enum.at(i)
-          m = reverse_shifted_r1 |> Enum.at(i + 1)
-          if GRow.can_merge?(n, m), do: [n, m], else: nil
-        end)
-
-      merge_indeces =
-        find_to_merge_indeces(r1, merge_values |> List.first(), merge_values |> List.last())
-
+      # []
+      # |> Enum.concat(left_of_boundary_meta)
+      # |> Enum.concat(right_of_boundary_meta)
+      # |> Enum.concat([
+      #   %{
+      #     merge: true,
+      #     i: zero_boundary_index + 1,
+      #     pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index),
+      #     delta: {merge_indeces |> List.first(), zero_boundary_index + 1}
+      #   },
+      #   %{
+      #     merge: true,
+      #     i: zero_boundary_index + 1,
+      #     pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index + 1),
+      #     delta: {merge_indeces |> List.last(), zero_boundary_index + 1}
+      #   }
+      # ])
+      # |> Enum.concat([
+      #   %{new: true, i: zero_boundary_index + 1}
+      # ])
       []
-      |> Enum.concat(left_of_boundary_meta)
-      |> Enum.concat(right_of_boundary_meta)
-      |> Enum.concat([
-        %{
-          merge: true,
-          i: zero_boundary_index + 1,
-          pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index),
-          delta: {merge_indeces |> List.first(), zero_boundary_index + 1}
-        },
-        %{
-          merge: true,
-          i: zero_boundary_index + 1,
-          pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index + 1),
-          delta: {merge_indeces |> List.last(), zero_boundary_index + 1}
-        }
-      ])
-      |> Enum.concat([
-        %{new: true, i: zero_boundary_index + 1}
-      ])
     end
   end
 
@@ -272,12 +209,7 @@ defmodule Engine2048.Game.Meta do
         v == v2 && j > i
       end)
 
-    [i, j] |> Enum.map(&reverse_index(&1, r1 |> length())) |> Enum.reverse()
-  end
-
-  @spec reverse_index(non_neg_integer(), non_neg_integer()) :: non_neg_integer()
-  defp reverse_index(i, length) when i <= length do
-    length - 1 - i
+    [i, j] |> Enum.map(&IndexMapper.reverse_index(&1, r1 |> length())) |> Enum.reverse()
   end
 
   @spec prepend_new([tile_meta()], non_neg_integer(), pos_integer()) :: [tile_meta()]

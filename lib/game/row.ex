@@ -2,6 +2,7 @@ defmodule Engine2048.Game.GRow do
   alias Engine2048.Game.GRow
 
   alias Engine2048.Tile
+  alias Engine2048.Utils.IndexMapper
 
   @type t :: [integer()]
   @type tile() :: Tile.t()
@@ -75,6 +76,38 @@ defmodule Engine2048.Game.GRow do
       true ->
         row |> do_merge(i + 1)
     end
+  end
+
+  @spec find_merges(t()) :: [any()]
+  def find_merges(merged_row) do
+    merged_row
+    |> Enum.chunk_every(2, 1)
+    |> Enum.with_index()
+    |> Enum.filter(fn
+      {[0, 0], _} ->
+        false
+
+      {[0, _], _} ->
+        true
+
+      _ ->
+        false
+    end)
+    |> Enum.map(fn {v, i} -> {v, i, i + 1} end)
+  end
+
+  @spec find_non_merges(t()) :: [any()]
+  def find_non_merges(merged_row) do
+    row = merged_row |> Enum.reverse()
+
+    row
+    |> Enum.with_index()
+    |> Enum.take_while(fn {_, i} ->
+      Enum.at(row, i + 1) > 0
+    end)
+    |> Enum.map(fn {x, i} ->
+      {x, i |> IndexMapper.reverse_index(row |> length())}
+    end)
   end
 
   @spec swipe(t()) :: t()

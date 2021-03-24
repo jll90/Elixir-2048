@@ -24,6 +24,32 @@ defmodule Engine2048.Game.Meta do
 
   @spec calc_board_diff(Board.t(), Board.t(), swipe_dir()) :: [tile_meta()]
   def calc_board_diff(b1, b2, :right) do
+    do_calc_board_diff(b1, b2) |> map_meta_indeces(b1, :right)
+  end
+
+  def calc_board_diff(b1, b2, :up) do
+    b1 = b1 |> Board.rotate_right()
+    b2 = b2 |> Board.rotate_right()
+
+    do_calc_board_diff(b1, b2) |> map_meta_indeces(b1, :up)
+  end
+
+  def calc_board_diff(b1, b2, :left) do
+    b1 = b1 |> Board.rotate_180()
+    b2 = b2 |> Board.rotate_180()
+
+    do_calc_board_diff(b1, b2) |> map_meta_indeces(b1, :left)
+  end
+
+  def calc_board_diff(b1, b2, :down) do
+    b1 = b1 |> Board.rotate_left()
+    b2 = b2 |> Board.rotate_left()
+
+    do_calc_board_diff(b1, b2) |> map_meta_indeces(b1, :down)
+  end
+
+  @spec do_calc_board_diff(Board.t(), Board.t()) :: [tile_meta()]
+  defp do_calc_board_diff(b1, b2) do
     Enum.zip(b1, b2)
     |> Enum.map(fn {r1, r2} ->
       calc_row_diff(r1, r2)
@@ -36,28 +62,6 @@ defmodule Engine2048.Game.Meta do
         meta |> Map.merge(%{i: shifted_i})
       end)
     end)
-    |> map_meta_indeces(b1, :right)
-  end
-
-  def calc_board_diff(b1, b2, :up) do
-    b1 = b1 |> Board.rotate_right()
-    b2 = b2 |> Board.rotate_right()
-
-    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :up)
-  end
-
-  def calc_board_diff(b1, b2, :left) do
-    b1 = b1 |> Board.rotate_180()
-    b2 = b2 |> Board.rotate_180()
-
-    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :left)
-  end
-
-  def calc_board_diff(b1, b2, :down) do
-    b1 = b1 |> Board.rotate_left()
-    b2 = b2 |> Board.rotate_left()
-
-    calc_board_diff(b1, b2, :right) |> map_meta_indeces(b1, :down)
   end
 
   @spec map_meta_indeces([[tile_meta()]], Board.t(), swipe_dir()) :: [tile_meta()]

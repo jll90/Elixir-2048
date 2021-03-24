@@ -71,7 +71,7 @@ defmodule Engine2048.Game.Meta do
 
     meta_list
     |> List.flatten()
-    |> IO.inspect(label: "tile_meta #{swipe_dir}")
+    # |> IO.inspect(label: "tile_meta #{swipe_dir}")
     |> Enum.map(fn %{i: i} = meta ->
       degs = swipe_dir |> swipe_dir_to_degs()
 
@@ -100,7 +100,8 @@ defmodule Engine2048.Game.Meta do
       m ->
         m
     end)
-    |> IO.inspect(label: "tile_meta #{swipe_dir}")
+
+    # |> IO.inspect(label: "tile_meta #{swipe_dir}")
   end
 
   @spec calc_row_diff(GRow.t(), GRow.t()) :: [tile_meta()] | nil

@@ -70,6 +70,7 @@ defmodule Engine2048.Game.GRow do
         row
         |> List.replace_at(i - 1, t1 * 2)
         |> List.replace_at(i, 0)
+        |> do_merge(i + 1)
 
       true ->
         row |> do_merge(i + 1)

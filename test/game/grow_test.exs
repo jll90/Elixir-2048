@@ -22,6 +22,7 @@ defmodule Engine2048.Game.GRowTest do
       assert [0, 0, 2, 2, -1, -1] |> GRow.swipe() == [0, 0, 0, 4, -1, -1]
       assert [0, 2, 2, -1, 2, 2] |> GRow.swipe() == [0, 0, 4, -1, 0, 4]
       assert [2, 2, -1, -1, 2, 2] |> GRow.swipe() == [0, 4, -1, -1, 0, 4]
+      assert [4, 4, 2, 2, -1, -1, 2, 2] |> GRow.swipe() == [0, 0, 8, 4, -1, -1, 0, 4]
     end
 
     test "other test cases" do

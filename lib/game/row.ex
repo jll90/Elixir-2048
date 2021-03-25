@@ -1,11 +1,16 @@
 defmodule Engine2048.Game.GRow do
-  alias Engine2048.Game.GRow
-
   alias Engine2048.Tile
   alias Engine2048.Utils.IndexMapper
 
   @type t :: [integer()]
   @type tile() :: Tile.t()
+  @type shift_diff() :: %{
+          v: pos_integer(),
+          i: non_neg_integer(),
+          delta: {non_neg_integer(), non_neg_integer()}
+        }
+  @type merge() :: {[integer()], non_neg_integer(), non_neg_integer()}
+  @type non_merge() :: {pos_integer(), non_neg_integer()}
 
   @spec shift(t()) :: t()
   def shift(row) do
@@ -68,9 +73,11 @@ defmodule Engine2048.Game.GRow do
         row
 
       can_merge?(t1, t2) ->
+        {t1, t2} = tile_merge(t1, t2)
+
         row
-        |> List.replace_at(i - 1, t1 * 2)
-        |> List.replace_at(i, 0)
+        |> List.replace_at(i - 1, t2)
+        |> List.replace_at(i, t1)
         |> do_merge(i + 1)
 
       true ->
@@ -78,35 +85,31 @@ defmodule Engine2048.Game.GRow do
     end
   end
 
-  @spec find_merges(t()) :: [any()]
-  def find_merges(merged_row) do
-    merged_row
-    |> Enum.chunk_every(2, 1)
-    |> Enum.with_index()
-    |> Enum.filter(fn
-      {[0, 0], _} ->
-        false
-
-      {[0, _], _} ->
-        true
-
-      _ ->
-        false
-    end)
-    |> Enum.map(fn {v, i} -> {v, i, i + 1} end)
+  @spec tile_merge(integer(), integer()) :: {integer(), integer()}
+  def tile_merge(x, y) when x == y do
+    {0, x * 2}
   end
 
-  @spec find_non_merges(t()) :: [any()]
-  def find_non_merges(merged_row) do
-    row = merged_row |> Enum.reverse()
+  @spec calc_shift_diff(t(), t()) :: [shift_diff()]
+  def calc_shift_diff(row, shifted_row) do
+    drop_zeroes = fn
+      {0, _} -> false
+      _ -> true
+    end
 
-    row
-    |> Enum.with_index()
-    |> Enum.take_while(fn {_, i} ->
-      Enum.at(row, i + 1) > 0
-    end)
-    |> Enum.map(fn {x, i} ->
-      {x, i |> IndexMapper.reverse_index(row |> length())}
+    indexed_row =
+      row
+      |> Enum.with_index()
+      |> Enum.filter(drop_zeroes)
+
+    indexed_shifted_row =
+      shifted_row
+      |> Enum.with_index()
+      |> Enum.filter(drop_zeroes)
+
+    Enum.zip(indexed_row, indexed_shifted_row)
+    |> Enum.map(fn {{_, i}, {y, j}} ->
+      %{v: y, i: j, delta: {i, j}}
     end)
   end
 

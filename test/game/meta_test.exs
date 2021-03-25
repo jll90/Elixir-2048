@@ -25,7 +25,7 @@ defmodule Engine2048.Game.MetaTest do
       assert result |> find_delta(6, 6, 6)
     end
 
-    test "can calculate meta for merges" do
+    test "can calculate meta for single merges" do
       r1 = [2, 0, 4, 0, 8, 0, 8, 0, 32, 0]
       r2 = [0, 0, 0, 0, 0, 0, 2, 4, 16, 32]
 
@@ -38,6 +38,24 @@ defmodule Engine2048.Game.MetaTest do
 
       assert result |> find_delta(8, 4, 8, true)
       assert result |> find_delta(8, 6, 8, true)
+    end
+
+    test "can calculate meta for multiple merges" do
+      r1 = [2, 0, 4, 0, 8, 0, 8, 16, 32, 32]
+      r2 = [0, 0, 0, 0, 0, 2, 4, 16, 16, 64]
+
+      result = Meta.calc_row_diff(r1, r2)
+      assert is_list(result)
+      assert result |> find_new(7)
+      assert result |> find_new(9)
+
+      assert result |> find_delta(7, 4, 7, true)
+      assert result |> find_delta(7, 6, 7, true)
+      assert result |> find_delta(9, 8, 9, true)
+      assert result |> find_delta(9, 9, 9, true)
+
+      assert result |> find_delta(5, 0, 5)
+      assert result |> find_delta(6, 2, 6)
     end
 
     test "can calculate meta for merges w/ obstacles" do

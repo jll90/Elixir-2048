@@ -162,13 +162,8 @@ defmodule Engine2048.Game.Meta do
     else
       shifted_row = r1 |> GRow.shift()
       shift_diff = GRow.calc_shift_diff(r1, shifted_row)
-      # reverse_shifted_row = shifted_row |> Enum.reverse()
-      #
-      IO.inspect(shift_diff, label: "shifted_diff")
 
-      # 3 prepare for traversal
       reverse_shift_diff = shift_diff |> Enum.reverse()
-      init_tally = %{merges: 0, non_merges: 0}
 
       {meta, _} =
         r2
@@ -177,66 +172,38 @@ defmodule Engine2048.Game.Meta do
           x > 0
         end)
         |> Enum.reverse()
-        |> Enum.map_reduce({reverse_shift_diff, init_tally}, fn {e, i},
-                                                                {shift_acc, merges_tally} ->
-          %{
-            merges: merges,
-            non_merges: non_merges
-          } = merges_tally
-
+        |> Enum.map_reduce({reverse_shift_diff, 0}, fn {e, i}, {shift_acc, merge_count} ->
           shift_diff_find = fn i ->
             fn %{delta: {_, end_index}} ->
               end_index == i
             end
           end
 
-          found_value =
-            shift_acc
-            |> Enum.find(fn %{v: v} ->
-              e == v
-            end)
+          %{v: first_acc_val, delta: delta} = shift_acc |> List.first()
+          # IO.inspect("#{e} - index: #{i}")
+          # IO.inspect(shift_acc, label: "shift_acc")
 
-          if found_value do
-            %{delta: {start_index, _}} = shift_acc |> List.first()
+          if e == first_acc_val do
+            {start_index, _} = delta
 
-            {%{v: e, i: i, delta: {start_index, i}},
-             {shift_acc |> Enum.drop(1), merges_tally |> Map.put(:merges, merges + 1)}}
+            {%{v: e, i: i, delta: {start_index, i}}, {shift_acc |> Enum.drop(1), merge_count}}
           else
             %{v: tile1_v, delta: {tile1_start_index, _}} =
-              shift_acc |> Enum.find(shift_diff_find.(i))
+              shift_acc |> Enum.find(shift_diff_find.(i - merge_count))
 
             %{v: tile2_v, delta: {tile2_start_index, _}} =
-              shift_acc |> Enum.find(shift_diff_find.(i - 1))
+              shift_acc |> Enum.find(shift_diff_find.(i - merge_count - 1))
 
             {[
                %{pv: tile1_v, delta: {tile1_start_index, i}, merge: true, i: i},
                %{pv: tile2_v, delta: {tile2_start_index, i}, merge: true, i: i},
                %{v: e, i: i, new: true}
-             ], {shift_acc |> Enum.drop(2), merges_tally |> Map.put(:non_merges, non_merges + 2)}}
+             ], {shift_acc |> Enum.drop(2), merge_count + 1}}
           end
         end)
 
       meta |> List.flatten()
     end
-  end
-
-  defp find_to_merge_indeces(r1, v1, v2) do
-    reversed_r1 = r1 |> Enum.reverse()
-
-    i =
-      reversed_r1
-      |> Enum.find_index(fn v ->
-        v == v1
-      end)
-
-    j =
-      reversed_r1
-      |> Enum.with_index()
-      |> Enum.find_index(fn {v, j} ->
-        v == v2 && j > i
-      end)
-
-    [i, j] |> Enum.map(&IndexMapper.reverse_index(&1, r1 |> length())) |> Enum.reverse()
   end
 
   @spec prepend_new([tile_meta()], non_neg_integer(), pos_integer()) :: [tile_meta()]

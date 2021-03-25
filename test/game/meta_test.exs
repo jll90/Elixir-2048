@@ -31,6 +31,7 @@ defmodule Engine2048.Game.MetaTest do
 
       result = Meta.calc_row_diff(r1, r2)
       assert is_list(result)
+      IO.inspect(result)
       assert result |> find_delta(6, 0, 6)
       assert result |> find_delta(7, 2, 7)
       assert result |> find_delta(9, 8, 9)

@@ -118,11 +118,7 @@ defmodule Engine2048.Game.Meta do
       []
     else
       if r1 |> GRow.shift() == r2 do
-        r1_values = r1 |> Enum.with_index() |> Enum.filter(fn {v, _} -> v > 0 end)
-        r2_values = r2 |> Enum.with_index() |> Enum.filter(fn {v, _} -> v > 0 end)
-
-        Enum.zip(r1_values, r2_values)
-        |> Enum.map(fn {{_, i}, {v, j}} -> %{v: v, i: j, delta: {i, j}} end)
+        GRow.calc_shift_diff(r1, r2)
       else
         calc_merge_diff(r1, r2)
       end
@@ -131,9 +127,9 @@ defmodule Engine2048.Game.Meta do
 
   @spec calc_merge_diff(GRow.t(), GRow.t()) :: [tile_meta()]
   def calc_merge_diff(r1, r2) do
-    obstacles = r1 |> Enum.filter(&(&1 == -1))
+    obstacle_count = r1 |> Enum.count(&(&1 == -1))
 
-    if obstacles |> length() > 0 do
+    if obstacle_count > 0 do
       # for now
       split_r1 = r1 |> Enum.with_index() |> Enum.chunk_by(fn {v, _} -> v == -1 end)
       split_r2 = r2 |> Enum.with_index() |> Enum.chunk_by(fn {v, _} -> v == -1 end)
@@ -164,32 +160,63 @@ defmodule Engine2048.Game.Meta do
       |> List.flatten()
       |> Enum.filter(&(!is_nil(&1)))
     else
-      pre_swipe_zeroes = r1 |> Enum.filter(&(&1 == 0)) |> length()
-      post_swipe_zeroes = r2 |> Enum.filter(&(&1 == 0)) |> length()
+      shifted_row = r1 |> GRow.shift()
+      shift_diff = GRow.calc_shift_diff(r1, shifted_row)
+      # reverse_shifted_row = shifted_row |> Enum.reverse()
+      #
+      IO.inspect(shift_diff, label: "shifted_diff")
 
-      merges_count = post_swipe_zeroes - pre_swipe_zeroes
+      # 3 prepare for traversal
+      reverse_shift_diff = shift_diff |> Enum.reverse()
+      init_tally = %{merges: 0, non_merges: 0}
 
-      # []
-      # |> Enum.concat(left_of_boundary_meta)
-      # |> Enum.concat(right_of_boundary_meta)
-      # |> Enum.concat([
-      #   %{
-      #     merge: true,
-      #     i: zero_boundary_index + 1,
-      #     pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index),
-      #     delta: {merge_indeces |> List.first(), zero_boundary_index + 1}
-      #   },
-      #   %{
-      #     merge: true,
-      #     i: zero_boundary_index + 1,
-      #     pv: Enum.at(r1 |> GRow.shift(), zero_boundary_index + 1),
-      #     delta: {merge_indeces |> List.last(), zero_boundary_index + 1}
-      #   }
-      # ])
-      # |> Enum.concat([
-      #   %{new: true, i: zero_boundary_index + 1}
-      # ])
-      []
+      {meta, _} =
+        r2
+        |> Enum.with_index()
+        |> Enum.filter(fn {x, _} ->
+          x > 0
+        end)
+        |> Enum.reverse()
+        |> Enum.map_reduce({reverse_shift_diff, init_tally}, fn {e, i},
+                                                                {shift_acc, merges_tally} ->
+          %{
+            merges: merges,
+            non_merges: non_merges
+          } = merges_tally
+
+          shift_diff_find = fn i ->
+            fn %{delta: {_, end_index}} ->
+              end_index == i
+            end
+          end
+
+          found_value =
+            shift_acc
+            |> Enum.find(fn %{v: v} ->
+              e == v
+            end)
+
+          if found_value do
+            %{delta: {start_index, _}} = shift_acc |> List.first()
+
+            {%{v: e, i: i, delta: {start_index, i}},
+             {shift_acc |> Enum.drop(1), merges_tally |> Map.put(:merges, merges + 1)}}
+          else
+            %{v: tile1_v, delta: {tile1_start_index, _}} =
+              shift_acc |> Enum.find(shift_diff_find.(i))
+
+            %{v: tile2_v, delta: {tile2_start_index, _}} =
+              shift_acc |> Enum.find(shift_diff_find.(i - 1))
+
+            {[
+               %{pv: tile1_v, delta: {tile1_start_index, i}, merge: true, i: i},
+               %{pv: tile2_v, delta: {tile2_start_index, i}, merge: true, i: i},
+               %{v: e, i: i, new: true}
+             ], {shift_acc |> Enum.drop(2), merges_tally |> Map.put(:non_merges, non_merges + 2)}}
+          end
+        end)
+
+      meta |> List.flatten()
     end
   end
 

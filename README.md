@@ -43,7 +43,7 @@ Lookahead logic could be implemented by running the turn and obtaining the next 
 
 ### Why Elixir?
 
-A game like 2048 is a great fit for a functional paradigm (fewer bugs due to no state).\n
+A game like 2048 is a great fit for a functional paradigm (fewer bugs due to no state).
 
 Elixir's own `Enum` module (or for any logic built upon it) along with the `|>` operator are great tools in the developer's arsenal to write code that decouples data from flow control.
 

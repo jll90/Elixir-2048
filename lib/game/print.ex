@@ -17,12 +17,14 @@ defmodule Engine2048.Print do
       turns: turns,
       victory: victory,
       curr: board,
-      prev: prev_board
+      prev: prev_board,
+      score: score
     } = game_state
 
     IO.puts("==================================")
     IO.puts("Victory: #{victory}")
     IO.puts("Turns: #{turns}")
+    IO.puts("Score: #{score}")
     IO.puts("\n")
 
     if prev_board, do: prev_board |> print_board()

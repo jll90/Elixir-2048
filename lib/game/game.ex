@@ -163,6 +163,11 @@ defmodule Engine2048.Game do
         |> Map.put(:turns, Map.get(game_state, :turns) + 1)
         |> Map.put(:victory, victory)
         |> Map.put(:noop, false)
+
+      ## we split it so the current value can be read by the score calculation function
+
+      game_state =
+        game_state
         |> Map.put(:score, calc_score(game_state))
 
       game_state

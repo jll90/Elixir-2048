@@ -4,7 +4,7 @@ defmodule Engine2048.MixProject do
   def project do
     [
       app: :engine2048,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

@@ -84,5 +84,5 @@ defmodule Engine2048 do
     The function is invoked inside the Game module and is currently a hardcoded behaviour
   """
   @spec print(state()) :: :ok
-  def print(state), do: Print.print()
+  def print(state), do: Print.print(state)
 end

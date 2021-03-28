@@ -3,7 +3,10 @@ defmodule Engine2048 do
     Main module that exposes an API to start and run a 2048 game. \n
     
     This module should suffice for most if not all use cases and there should be no need for interacting 
-    with other modules.
+    with other modules.\n
+
+  ## To get going...
+       iex> Engine2048.quick_start()
   """
   alias Engine2048.{Game, Builder, Print}
 

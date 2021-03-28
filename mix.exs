@@ -7,7 +7,15 @@ defmodule Engine2048.MixProject do
       version: "0.1.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      name: "Engine2048"
+      # source_url: "https://github.com/USER/PROJECT",
+      # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
+      # docs: [
+      #   main: "Engine2048",
+      #   logo: "path/to/logo.png",
+      #   extras: ["README.md"]
+      # ]
     ]
   end
 

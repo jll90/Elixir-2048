@@ -1,4 +1,5 @@
 defmodule Engine2048.Utils.IndexMapper do
+  @moduledoc false
   @type rotation_degs :: 0 | 90 | 180 | 270
   @spec right_rotate_index_map(non_neg_integer(), non_neg_integer(), non_neg_integer()) ::
           non_neg_integer()

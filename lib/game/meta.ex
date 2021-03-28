@@ -1,4 +1,5 @@
 defmodule Engine2048.Game.Meta do
+  @moduledoc false
   alias Engine2048.Board
   alias Engine2048.Game.GRow
   alias Engine2048.Utils.IndexMapper

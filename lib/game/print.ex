@@ -1,10 +1,16 @@
-defmodule Engine2048.Game.Print do
+defmodule Engine2048.Print do
+  @moduledoc """
+  Outputs board to the console
+  """
   alias Engine2048.Game
   alias Engine2048.Board
 
   @type game_state() :: Game.game_state()
   @type board :: Board.t()
 
+  @doc """
+    Prints to std output
+  """
   @spec print(game_state()) :: :ok
   def print(game_state) do
     %{

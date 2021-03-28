@@ -1,6 +1,6 @@
 defmodule Engine2048.Game.GRow do
+  @moduledoc false
   alias Engine2048.Tile
-  alias Engine2048.Utils.IndexMapper
 
   @type t :: [integer()]
   @type tile() :: Tile.t()

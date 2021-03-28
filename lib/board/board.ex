@@ -1,4 +1,5 @@
 defmodule Engine2048.Board do
+  @moduledoc false
   alias Engine2048.{Board, Tile}
   alias Engine2048.Utils.IndexMapper
 
@@ -55,9 +56,14 @@ defmodule Engine2048.Board do
     board |> List.flatten() |> length()
   end
 
+  @spec filled_tile_count(Board.t()) :: pos_integer()
+  def filled_tile_count(board) do
+    board |> List.flatten() |> Enum.count(&(&1 != 0))
+  end
+
   @spec empty_tile_count(Board.t()) :: pos_integer()
   def empty_tile_count(board) do
-    board |> List.flatten() |> Enum.filter(&(&1 == 0)) |> length()
+    board |> List.flatten() |> Enum.count(&(&1 == 0))
   end
 
   @spec empty_tiles(Board.t()) :: [non_neg_integer()]
@@ -109,5 +115,10 @@ defmodule Engine2048.Board do
   @spec empty?(Board.t()) :: boolean()
   def empty?(board) do
     board |> List.flatten() |> Enum.all?(&(&1 == 0))
+  end
+
+  @spec max(Board.t()) :: pos_integer()
+  def max(board) do
+    board |> List.flatten() |> Enum.max()
   end
 end

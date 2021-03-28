@@ -33,6 +33,14 @@ defmodule Engine2048.Game do
           victory: victory()
         }
 
+  @doc """
+    It starts the game according to the following conditions (subject to change).\n
+    It initializes the board with n rows and m cols count.\n
+
+    The `:start value` variable will be the one value that will spawn at random on any tile.\
+    The `:new_value` variable will set the value of the new tile that spawns after the current turn has ended.\
+    The `:obstacle_count` sets the number of unmovable obstacles on the board. A greater number of obstacles makes the game a lot harder to play.
+  """
   @spec start(game_config()) :: {:ok, game_state()}
   def start(config) do
     %{
@@ -65,6 +73,7 @@ defmodule Engine2048.Game do
     {:ok, game_state}
   end
 
+  @doc false
   @spec init_board(Board.t(), non_neg_integer(), pos_integer(), pos_integer()) :: Board.t()
   defp init_board(board, init_index, start_value, obstacle_count) do
     board = board |> Board.replace_at(init_index, start_value)
@@ -85,11 +94,14 @@ defmodule Engine2048.Game do
     end
   end
 
+  @doc false
   @spec init_meta(pos_integer(), pos_integer()) :: [Meta.tile_meta()]
   defp init_meta(random_index, start_value) do
     [] |> Meta.prepend_new(random_index, start_value)
   end
 
+  ## left public so they're easier to test
+  @doc false
   @spec swipe(board(), swipe_dir()) :: board()
   def swipe(board, :right) do
     board
@@ -117,19 +129,12 @@ defmodule Engine2048.Game do
     |> Board.rotate_right()
   end
 
+  @doc """
+    Responsible for *running* the game.
+    It does not implement any state whatsoever and it will return the next state of the game if there is one - else it will return the same game with :noop set as `true`.
+  """
   @spec run_turn(game_state(), swipe_dir()) :: game_state()
   def run_turn(game_state, swipe_dir) do
-    do_run_turn(game_state, swipe_dir)
-  end
-
-  @spec score(game_state()) :: pos_integer()
-  def score(%{score: score}), do: score
-
-  @spec filled_tiles(game_state()) :: pos_integer()
-  def filled_tiles(%{curr: board}), do: board |> Board.filled_tile_count()
-
-  @spec do_run_turn(game_state(), swipe_dir()) :: game_state()
-  defp do_run_turn(game_state, swipe_dir) do
     new_value = Kernel.get_in(game_state, [:config, :new_value])
     board = Map.get(game_state, :curr)
     swiped_board = board |> swipe(swipe_dir)
@@ -163,6 +168,16 @@ defmodule Engine2048.Game do
       game_state
     end
   end
+
+  @doc """
+    Passes the score to a higher level module should the implementation change - a bit more futureproof.
+  """
+  @spec score(game_state()) :: pos_integer()
+  def score(%{score: score}), do: score
+
+  @doc false
+  @spec filled_tiles(game_state()) :: pos_integer()
+  def filled_tiles(%{curr: board}), do: board |> Board.filled_tile_count()
 
   @doc false
   @spec calc_score(game_state()) :: pos_integer()

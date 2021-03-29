@@ -153,7 +153,17 @@ defmodule Engine2048.Game do
         Meta.calc_board_diff(board, swiped_board, swipe_dir)
         |> Meta.prepend_new(random_tile_index, new_value)
 
-      victory = check_for_victory(board_with_piece, game_state |> Map.get(:config))
+      no_further_movements =
+        [
+          board_with_piece |> swipe(:left),
+          board_with_piece |> swipe(:right),
+          board_with_piece |> swipe(:up),
+          board_with_piece |> swipe(:down)
+        ]
+        |> Enum.all?(&(&1 == board_with_piece))
+
+      victory =
+        check_for_victory(board_with_piece, no_further_movements, game_state |> Map.get(:config))
 
       game_state =
         game_state
@@ -193,15 +203,15 @@ defmodule Engine2048.Game do
   defp calc_score(%{curr: board}), do: board |> Board.max()
 
   @doc false
-  @spec check_for_victory(Board.t(), game_config()) :: victory()
-  defp check_for_victory(board, config) do
+  @spec check_for_victory(Board.t(), boolean(), game_config()) :: victory()
+  defp check_for_victory(board, no_further_movements, config) do
     cond do
       board
       |> List.flatten()
       |> Enum.any?(fn v -> v == Map.get(config, :max_value) end) ->
         true
 
-      board |> Board.full?() ->
+      no_further_movements ->
         false
 
       true ->

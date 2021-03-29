@@ -160,13 +160,34 @@ defmodule Engine2048.GameTest do
       assert init_state
     end
 
-    test "game is lost when there are no empty tiles and then results in noop" do
+    test "game can continue if board is full but there is at least one merge to be made" do
+      {:ok, init_state} = Builder.new() |> Builder.cols(3) |> Builder.rows(3) |> Game.start()
+
+      ## can swipe right
+      ## bottom left will be filled
+      # @ can still swipe up
+      board = [
+        [1, 2, 4],
+        [8, 2, 8],
+        [32, 16, 0]
+      ]
+
+      fake_state =
+        init_state
+        |> Map.merge(%{
+          curr: board
+        })
+
+      assert %{victory: nil, noop: false} = fake_state |> Game.run_turn(:right)
+    end
+
+    test "game is lost when there are no empty tiles  and no swipes are possible" do
       {:ok, init_state} = Builder.new() |> Builder.cols(3) |> Builder.rows(3) |> Game.start()
 
       board = [
         [1, 2, 4],
-        [1, 2, 8],
-        [1, 2, 0]
+        [8, 16, 32],
+        [64, 128, 0]
       ]
 
       fake_state =

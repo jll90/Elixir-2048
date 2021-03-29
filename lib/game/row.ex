@@ -53,12 +53,10 @@ defmodule Engine2048.Game.GRow do
     all_distinct? = len == uniq_count
     # has_obstacles? == Enum.filter(&(&1 == -1)) |> length > 0
 
-    cond do
-      empty? || all_distinct? ->
-        row
-
-      true ->
-        row |> Enum.reverse() |> do_merge() |> Enum.reverse()
+    if empty? || all_distinct? do
+      row
+    else
+      row |> Enum.reverse() |> do_merge() |> Enum.reverse()
     end
   end
 

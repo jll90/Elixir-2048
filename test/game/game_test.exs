@@ -159,7 +159,7 @@ defmodule Engine2048.GameTest do
       assert init_state
     end
 
-    test "game is lost when there are no empty tiles" do
+    test "game is lost when there are no empty tiles and then results in noop" do
       {:ok, init_state} = Builder.new() |> Builder.cols(3) |> Builder.rows(3) |> Game.start()
 
       board = [
@@ -174,12 +174,11 @@ defmodule Engine2048.GameTest do
           curr: board
         })
 
-      %{victory: victory} = fake_state |> Game.run_turn(:right)
-      ## we do not refute because false means the game was lost
-      assert victory == false
+      assert %{victory: false, noop: false} = victory_state = fake_state |> Game.run_turn(:right)
+      assert %{victory: false, noop: true} = victory_state |> Game.run_turn(:right)
     end
 
-    test "game is won when 2048 is reached" do
+    test "game is won when 2048 is reached and then results in noop" do
       {:ok, init_state} = Builder.new() |> Builder.cols(3) |> Builder.rows(3) |> Game.start()
 
       board = [
@@ -194,9 +193,8 @@ defmodule Engine2048.GameTest do
           curr: board
         })
 
-      %{victory: victory} = fake_state |> Game.run_turn(:right)
-      ## we do not refute because false means the game was lost
-      assert victory
+      assert %{victory: true, noop: false} = victory_state = fake_state |> Game.run_turn(:right)
+      assert %{victory: true, noop: true} = victory_state |> Game.run_turn(:down)
     end
   end
 end

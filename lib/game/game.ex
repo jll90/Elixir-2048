@@ -139,7 +139,7 @@ defmodule Engine2048.Game do
     board = Map.get(game_state, :curr)
     swiped_board = board |> swipe(swipe_dir)
 
-    if board == swiped_board do
+    if board == swiped_board || is_boolean(Map.get(game_state, :victory)) do
       game_state |> Map.put(:noop, true)
     else
       random_tile_index =

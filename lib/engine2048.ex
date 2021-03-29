@@ -49,7 +49,7 @@ defmodule Engine2048 do
 
   ## Examples
       iex> {:ok, state} = Engine2048.quick_start()
-      iex> state = Engine2048.swipe(state, :right)
+      iex> _ = Engine2048.swipe(state, :right)
   """
   @spec swipe(state(), swipe_dir()) :: state()
   def swipe(state, swipe_dir), do: Game.run_turn(state, swipe_dir)

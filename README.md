@@ -51,7 +51,7 @@ This project can be plugged in into another other project to serve single-player
 
 ### Implementation and primitives
 
-The board and the game themselves were implemented using simple lists while tile values are represented with just integers. Even though there are modules wrapping the logic of the game, no additional effort was made to create complex structs which resulted in some parts of the implementation to be lighter on the eyes, and both easier to read and maintain. Typed maps (with typespecs) and pattern matching were preferred to structs.
+The board and the game themselves were implemented using simple lists while tile values are represented with just integers. Even though there are modules wrapping the logic of the game, no additional effort was made to create complex structs which resulted in greater readability and maintainability. Typed maps (with typespecs) and pattern matching were preferred to structs.
 
 The board, the most important data structure of the game, is represented as a list of a list of integers, as this is probably the most natural abstraction.
 

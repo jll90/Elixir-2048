@@ -68,7 +68,7 @@ defmodule Engine2048.Builder do
   @doc """
     Sets the obstacle count, i.e. obstacles on the board for added fun and increased difficulty.
   """
-  @spec obstacle_count(config(), pos_integer()) :: config()
+  @spec obstacle_count(config(), non_neg_integer()) :: config()
   def obstacle_count(config, count) do
     config |> Map.put(:obstacle_count, count)
   end

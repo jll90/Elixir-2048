@@ -15,7 +15,6 @@ defmodule Engine2048 do
   @type noop() :: Game.noop()
   @type swipe_dir() :: Game.swipe_dir()
 
-  @spec quick_start() :: {:ok, state()}
   ## giving false warning
 
   @doc """
@@ -26,7 +25,9 @@ defmodule Engine2048 do
       iex> {:ok, game_state} = Engine2048.quick_start()
 
   """
+  @spec quick_start() :: {:ok, state()}
   def quick_start do
+    ## @spec false positive warning (I think)
     Builder.new() |> Game.start()
   end
 

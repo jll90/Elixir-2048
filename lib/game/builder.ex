@@ -66,6 +66,14 @@ defmodule Engine2048.Builder do
   end
 
   @doc """
+    Sets the value (score) required to win the game
+  """
+  @spec max_value(config(), pos_integer()) :: config()
+  def max_value(config, max_value) do
+    config |> Map.put(:max_value, max_value)
+  end
+
+  @doc """
     Sets the obstacle count, i.e. obstacles on the board for added fun and increased difficulty.
   """
   @spec obstacle_count(config(), non_neg_integer()) :: config()

@@ -56,14 +56,19 @@ defmodule Engine2048.Board do
     board |> List.flatten() |> length()
   end
 
-  @spec filled_tile_count(Board.t()) :: pos_integer()
+  @spec filled_tile_count(Board.t()) :: non_neg_integer()
   def filled_tile_count(board) do
     board |> List.flatten() |> Enum.count(&(&1 != 0))
   end
 
-  @spec empty_tile_count(Board.t()) :: pos_integer()
+  @spec empty_tile_count(Board.t()) :: non_neg_integer()
   def empty_tile_count(board) do
     board |> List.flatten() |> Enum.count(&(&1 == 0))
+  end
+
+  @spec obstacle_count(Board.t()) :: non_neg_integer()
+  def obstacle_count(board) do
+    board |> List.flatten() |> Enum.count(&(&1 == -1))
   end
 
   @spec empty_tiles(Board.t()) :: [non_neg_integer()]

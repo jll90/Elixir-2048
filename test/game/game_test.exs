@@ -140,6 +140,7 @@ defmodule Engine2048.GameTest do
       assert Map.get(state, :curr)
       refute Map.get(state, :prev)
       assert Map.get(state, :score) == start_value
+      assert state |> Game.obstacles() == 3
     end
 
     test "game starts with one filled tile" do

@@ -80,14 +80,14 @@ defmodule Engine2048.Game do
 
     if obstacle_count > 0 do
       0..(obstacle_count - 1)
-      |> Enum.to_list()
+      |> Enum.map(& &1)
       |> Enum.reduce(board, fn _, b ->
         empty_tile_index =
           b
           |> Board.empty_tiles()
           |> Enum.random()
 
-        board |> Board.replace_at(empty_tile_index, -1)
+        b |> Board.replace_at(empty_tile_index, -1)
       end)
     else
       board
@@ -181,7 +181,11 @@ defmodule Engine2048.Game do
   def score(%{score: score}), do: score
 
   @doc false
-  @spec filled_tiles(game_state()) :: pos_integer()
+  @spec obstacles(game_state()) :: non_neg_integer()
+  def obstacles(%{curr: board}), do: board |> Board.obstacle_count()
+
+  @doc false
+  @spec filled_tiles(game_state()) :: non_neg_integer()
   def filled_tiles(%{curr: board}), do: board |> Board.filled_tile_count()
 
   @doc false
